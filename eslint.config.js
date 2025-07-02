@@ -140,6 +140,7 @@ export default tseslint.config(
     files: ['./**/*.{tsx,ts,js}'],
     plugins: {
       'license-header': licenseHeader,
+      import: importPlugin,
     },
     rules: {
       'license-header/header': [
@@ -152,6 +153,7 @@ export default tseslint.config(
           ' */',
         ],
       ],
+      'import/enforce-node-protocol-usage': ['error', 'always']
     },
   },
   // extra settings for scripts that we run directly with node
