@@ -8,11 +8,12 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 import {
   Chat,
+  Content,
   EmbedContentResponse,
   GenerateContentResponse,
   GoogleGenAI,
 } from '@google/genai';
-import { GeminiClient } from './client.js';
+import { findIndexAfterFraction, GeminiClient } from './client.js';
 import { AuthType, ContentGenerator } from './contentGenerator.js';
 import { GeminiChat } from './geminiChat.js';
 import { Config } from '../config/config.js';
@@ -64,6 +65,54 @@ vi.mock('../telemetry/index.js', () => ({
   logApiResponse: vi.fn(),
   logApiError: vi.fn(),
 }));
+
+describe('findIndexAfterFraction', () => {
+  const history: Content[] = [
+    { role: 'user', parts: [{ text: 'This is the first message.' }] },
+    { role: 'model', parts: [{ text: 'This is the second message.' }] },
+    { role: 'user', parts: [{ text: 'This is the third message.' }] },
+    { role: 'model', parts: [{ text: 'This is the fourth message.' }] },
+    { role: 'user', parts: [{ text: 'This is the fifth message.' }] },
+  ];
+
+  it('should throw an error for non-positive numbers', () => {
+    expect(() => findIndexAfterFraction(history, 0)).toThrow(
+      'Fraction must be between 0 and 1',
+    );
+  });
+
+  it('should throw an error for a fraction greater than or equal to 1', () => {
+    expect(() => findIndexAfterFraction(history, 1)).toThrow(
+      'Fraction must be between 0 and 1',
+    );
+  });
+
+  it('should handle a fraction in the middle', () => {
+    // Total length is 257. 257 * 0.5 = 128.5
+    // 0: 53
+    // 1: 53 + 54 = 107
+    // 2: 107 + 53 = 160
+    // 160 >= 128.5, so index is 2
+    expect(findIndexAfterFraction(history, 0.5)).toBe(2);
+  });
+
+  it('should handle an empty history', () => {
+    expect(findIndexAfterFraction([], 0.5)).toBe(0);
+  });
+
+  it('should handle a history with only one item', () => {
+    expect(findIndexAfterFraction(history.slice(0, 1), 0.5)).toBe(0);
+  });
+
+  it('should handle history with weird parts', () => {
+    const historyWithEmptyParts: Content[] = [
+      { role: 'user', parts: [{ text: 'Message 1' }] },
+      { role: 'model', parts: [{ fileData: { fileUri: 'derp' } }] },
+      { role: 'user', parts: [{ text: 'Message 2' }] },
+    ];
+    expect(findIndexAfterFraction(historyWithEmptyParts, 0.5)).toBe(1);
+  });
+});
 
 describe('Gemini Client (client.ts)', () => {
   let client: GeminiClient;
@@ -152,8 +201,14 @@ describe('Gemini Client (client.ts)', () => {
   // For future debugging, ensure that the `this.client` in `GeminiClient` (which is an
   // instance of the mocked GoogleGenerativeAI) correctly has its `chats.create` method
   // pointing to `mockChatCreateFn`.
-  it.todo('startChat should call getCoreSystemPrompt with userMemory and pass to chats.create', async () => {});
-  it.todo('startChat should call getCoreSystemPrompt with empty string if userMemory is empty', async () => {});
+  it.todo(
+    'startChat should call getCoreSystemPrompt with userMemory and pass to chats.create',
+    async () => {},
+  );
+  it.todo(
+    'startChat should call getCoreSystemPrompt with empty string if userMemory is empty',
+    async () => {},
+  );
 
   // NOTE: The following tests for generateJson were removed due to persistent issues with
   // the @google/genai mock, similar to the startChat tests. The mockGenerateContentFn
@@ -161,8 +216,14 @@ describe('Gemini Client (client.ts)', () => {
   // was not preventing an actual API call (leading to API key errors).
   // For future debugging, ensure `this.client.models.generateContent` in `GeminiClient` correctly
   // uses the `mockGenerateContentFn`.
-  it.todo('generateJson should call getCoreSystemPrompt with userMemory and pass to generateContent', async () => {});
-  it.todo('generateJson should call getCoreSystemPrompt with empty string if userMemory is empty', async () => {});
+  it.todo(
+    'generateJson should call getCoreSystemPrompt with userMemory and pass to generateContent',
+    async () => {},
+  );
+  it.todo(
+    'generateJson should call getCoreSystemPrompt with empty string if userMemory is empty',
+    async () => {},
+  );
 
   describe('generateEmbedding', () => {
     const texts = ['hello world', 'goodbye world'];
@@ -411,6 +472,7 @@ describe('Gemini Client (client.ts)', () => {
             { role: 'user', parts: [{ text: '...history...' }] },
           ]),
         addHistory: vi.fn(),
+        setHistory: vi.fn(),
         sendMessage: mockSendMessage,
       };
       client['chat'] = mockChat as GeminiChat;
@@ -513,6 +575,7 @@ describe('Gemini Client (client.ts)', () => {
 
       const mockChat: Partial<GeminiChat> = {
         getHistory: vi.fn().mockReturnValue(mockChatHistory),
+        setHistory: vi.fn(),
         sendMessage: mockSendMessage,
       };
 
@@ -549,7 +612,6 @@ describe('Gemini Client (client.ts)', () => {
       });
     });
   });
-
 
   describe('sendMessageStream', () => {
     it('should return the turn instance after the stream is complete', async () => {

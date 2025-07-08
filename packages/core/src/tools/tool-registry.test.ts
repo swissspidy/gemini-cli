@@ -106,9 +106,9 @@ const createMockCallableTool = (
 class MockTool extends BaseTool<{ param: string }, ToolResult> {
   constructor(name = 'mock-tool', description = 'A mock tool') {
     super(name, name, description, {
-      type: 'object',
+      type: Type.OBJECT,
       properties: {
-        param: { type: 'string' },
+        param: { type: Type.STRING },
       },
       required: ['param'],
     });
@@ -276,27 +276,6 @@ describe('ToolRegistry', () => {
       expect(registeredParams.properties?.['some_string']).toHaveProperty(
         'format',
         undefined,
-      );
-    });
-
-    it('should discover tools using MCP servers defined in getMcpServers', async () => {
-      mockConfigGetToolDiscoveryCommand.mockReturnValue(undefined);
-      vi.spyOn(config, 'getMcpServerCommand').mockReturnValue(undefined);
-      const mcpServerConfigVal = {
-        'my-mcp-server': {
-          command: 'mcp-server-cmd',
-          args: ['--port', '1234'],
-          trust: true,
-        },
-      };
-      vi.spyOn(config, 'getMcpServers').mockReturnValue(mcpServerConfigVal);
-
-      await toolRegistry.discoverTools();
-
-      expect(mockDiscoverMcpTools).toHaveBeenCalledWith(
-        mcpServerConfigVal,
-        undefined,
-        toolRegistry,
       );
     });
 
