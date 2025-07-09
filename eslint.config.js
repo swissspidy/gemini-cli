@@ -114,8 +114,8 @@ export default tseslint.config(
       'import/no-internal-modules': [
         'error',
         {
-          allow: [ 'react-dom/test-utils', 'memfs/lib/volume.js', 'yargs/**']
-        }
+          allow: ['react-dom/test-utils', 'memfs/lib/volume.js', 'yargs/**'],
+        },
       ],
       'import/no-relative-packages': 'error',
       'no-cond-assign': 'error',
@@ -210,5 +210,5 @@ export default tseslint.config(
         },
       ],
     },
-  }
+  },
 );
