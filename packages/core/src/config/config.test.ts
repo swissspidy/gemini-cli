@@ -6,6 +6,11 @@
 
 import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import { Config, ConfigParameters, SandboxConfig } from './config.js';
+import {
+  AuthType,
+  createContentGeneratorConfig,
+} from '../core/contentGenerator.js';
+import { GeminiClient } from '../core/client.js';
 import * as path from 'path';
 import { setGeminiMdFilename as mockSetGeminiMdFilename } from '../tools/memoryTool.js';
 import {
@@ -115,7 +120,7 @@ describe('Server Config (config.ts)', () => {
         apiKey: 'test-key',
       };
 
-      (createContentGeneratorConfig as vi.Mock).mockResolvedValue(
+      (createContentGeneratorConfig as Mock).mockResolvedValue(
         mockContentConfig,
       );
 
