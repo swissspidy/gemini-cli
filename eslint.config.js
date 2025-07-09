@@ -10,7 +10,7 @@ import reactPlugin from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
 import prettierConfig from 'eslint-config-prettier';
 import importPlugin from 'eslint-plugin-import';
-import vitest from '@vitest/eslint-plugin'
+import vitest from '@vitest/eslint-plugin';
 import globals from 'globals';
 import licenseHeader from 'eslint-plugin-license-header';
 import noRelativeCrossPackageImports from './eslint-rules/no-relative-cross-package-imports.js';
@@ -144,7 +144,7 @@ export default tseslint.config(
     },
     rules: {
       ...vitest.configs.recommended.rules,
-    }
+    },
   },
   {
     files: ['./**/*.{tsx,ts,js}'],
