@@ -153,7 +153,7 @@ export default tseslint.config(
           ' */',
         ],
       ],
-      'import/enforce-node-protocol-usage': ['error', 'always']
+      'import/enforce-node-protocol-usage': ['error', 'always'],
     },
   },
   // extra settings for scripts that we run directly with node
