@@ -297,6 +297,7 @@ describe('ToolRegistry', () => {
         mcpServerConfigVal,
         undefined,
         toolRegistry,
+        false,
       );
     });
   });

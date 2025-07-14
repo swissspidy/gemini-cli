@@ -6,18 +6,17 @@
 
 import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import { Config, ConfigParameters, SandboxConfig } from './config.js';
-import {
-  AuthType,
-  createContentGeneratorConfig,
-} from '../core/contentGenerator.js';
-import { GeminiClient } from '../core/client.js';
 import * as path from 'path';
 import { setGeminiMdFilename as mockSetGeminiMdFilename } from '../tools/memoryTool.js';
 import {
   DEFAULT_TELEMETRY_TARGET,
   DEFAULT_OTLP_ENDPOINT,
 } from '../telemetry/index.js';
-
+import {
+  AuthType,
+  createContentGeneratorConfig,
+} from '../core/contentGenerator.js';
+import { GeminiClient } from '../core/client.js';
 import { loadServerHierarchicalMemory } from '../utils/memoryDiscovery.js';
 
 // Mock dependencies that might be called during Config construction or createServerConfig
@@ -64,7 +63,7 @@ vi.mock('../core/contentGenerator.js', async (importOriginal) => {
 
 vi.mock('../core/client.js', () => ({
   GeminiClient: vi.fn().mockImplementation(() => ({
-    // Mock any methods on GeminiClient that might be used.
+    initialize: vi.fn().mockResolvedValue(undefined),
   })),
 }));
 
@@ -109,12 +108,11 @@ describe('Server Config (config.ts)', () => {
     vi.clearAllMocks();
   });
 
-  // i can't get vi mocking to import in core. only in cli. can't fix it now.
-  describe.skip('refreshAuth', () => {
+  describe('refreshAuth', () => {
     it('should refresh auth and update config', async () => {
       const config = new Config(baseParams);
-      const newModel = 'gemini-ultra';
       const authType = AuthType.USE_GEMINI;
+      const newModel = 'gemini-flash';
       const mockContentConfig = {
         model: newModel,
         apiKey: 'test-key',
@@ -127,10 +125,13 @@ describe('Server Config (config.ts)', () => {
       await config.refreshAuth(authType);
 
       expect(createContentGeneratorConfig).toHaveBeenCalledWith(
-        newModel,
+        MODEL, // Should be called with the original model 'gemini-pro'
         authType,
       );
+      // Verify that contentGeneratorConfig is updated with the new model
       expect(config.getContentGeneratorConfig()).toEqual(mockContentConfig);
+      expect(config.getContentGeneratorConfig().model).toBe(newModel);
+      expect(config.getModel()).toBe(newModel); // getModel() should return the updated model
       expect(GeminiClient).toHaveBeenCalledWith(config);
     });
   });
